@@ -1,4 +1,3 @@
-#include <TimerOne.h>
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
   #include <avr/power.h>
@@ -70,7 +69,7 @@ void CRAWL::step(void) {
     }
   strip.setPixelColor(0, next_color);
   } else {                                                // creep backward
-    uint16_t last = strip.numPixels()-1;
+    int last = strip.numPixels()-1;
     for (int i = 0; i < last; ++i) {
       uint32_t c = strip.getPixelColor(i+1);
       strip.setPixelColor(i, c);
@@ -116,8 +115,8 @@ bool BRGTN::change(uint16_t index, int val) {
     long cs = cc;
     cc *= e; cc >>= 8;
     if (cs == cc) cc += val;
-    if ((val > 0) && (cc >= color[s])) {
-      cc = color[s];
+    if ((val > 0) && (cc >= color[byte(s)])) {
+      cc = color[byte(s)];
       bound ++;
     }
     if ((val < 0) && (cc <= 0)){
@@ -145,7 +144,6 @@ class BLEND {
 uint32_t BLEND::add(uint32_t color1, uint32_t color2) {
   uint8_t r1,g1,b1;
   uint8_t r2,g2,b2;
-  uint8_t r3,g3,b3;
 
   r1 = (uint8_t)(color1 >> 16),
   g1 = (uint8_t)(color1 >>  8),
@@ -161,7 +159,6 @@ uint32_t BLEND::add(uint32_t color1, uint32_t color2) {
 uint32_t BLEND::sub(uint32_t color1, uint32_t color2) {
   uint8_t r1,g1,b1;
   uint8_t r2,g2,b2;
-  uint8_t r3,g3,b3;
   int16_t r,g,b;
 
   r1 = (uint8_t)(color1 >> 16),
@@ -238,7 +235,7 @@ void colorWipe::init(void) {
 void colorWipe::show(void) {
   uint32_t color = Wheel(w);
   if (fwd) {
-    if (index > strip.numPixels()) {                      // Start new sequence with the new color
+    if (index > int(strip.numPixels())) {                 // Start new sequence with the new color
       init();
       complete = true;
       return;
@@ -295,7 +292,7 @@ void colorWalk::show(void) {
     }
     uint32_t color = Wheel(w++);
     for (int i = index; i < n; i += period) {
-      if (i < strip.numPixels() - 1) strip.setPixelColor(i+1, 0);
+      if (i < int(strip.numPixels() - 1)) strip.setPixelColor(i+1, 0);
       strip.setPixelColor(i, color);
     }
     --index;
@@ -357,7 +354,7 @@ void colorWave::init(void) {
 void colorWave::show(void) {
   if (!rdy) {
     rdy = true;
-    for(int i = 0; i < strip.numPixels(); ++i) {
+    for(uint16_t i = 0; i < strip.numPixels(); ++i) {
       BRGTN::setColor(Wheel(((i * 256 / strip.numPixels())) & 255));
       if (!BRGTN::change(i, 2)) rdy = false;
     }
@@ -386,14 +383,14 @@ class rainbow: public BRGTN, public animation {
 void rainbow::show(void) {
   if (!rdy) {
     rdy = true;
-    for(int i = 0; i < strip.numPixels(); ++i) {
+    for(uint16_t i = 0; i < strip.numPixels(); ++i) {
       BRGTN::setColor(Wheel(i & 255));
       if (!BRGTN::change(i, 2)) rdy = false;
     }
     return;
   }
 
-  for(int i = 0; i < strip.numPixels(); ++i) {
+  for(uint16_t i = 0; i < strip.numPixels(); ++i) {
     strip.setPixelColor(i, Wheel((i+index) & 255));
   }
   ++index;                                                // index is from 0 to 255
@@ -413,7 +410,7 @@ class rainCycle: public BRGTN, public animation {
 void rainCycle::show(void) {
   if (!rdy) {
     rdy = true;
-    for(int i = 0; i < strip.numPixels(); ++i) {
+    for(uint16_t i = 0; i < strip.numPixels(); ++i) {
       BRGTN::setColor(Wheel((i * 256 / strip.numPixels()) & 255));
       if (!BRGTN::change(i, 1)) rdy = false;
     }
@@ -440,14 +437,14 @@ class rainFull: public BRGTN, public animation {
 void rainFull::show(void) {
   if (!rdy) {
     rdy = true;
-    for(int i = 0; i < strip.numPixels(); ++i) {
+    for(uint16_t i = 0; i < strip.numPixels(); ++i) {
       BRGTN::setColor(Wheel(index));
       if (!BRGTN::change(i, 1)) rdy = false;
     }
     return;
   }
 
-  for(int i = 0; i < strip.numPixels(); ++i) {
+  for(uint16_t i = 0; i < strip.numPixels(); ++i) {
     strip.setPixelColor(i, Wheel(index));
   }
   ++index;                                                // index is from 0 to 255
@@ -498,17 +495,17 @@ class sparks : public BRGTN, public animation {
     virtual void init(void)                               { for (byte i = 0; i < 8; ++i) pos[i] = 0; }
     virtual void show(void);
   private:
-    int pos[8];
+    uint16_t pos[8];
 };
 
 void sparks::show(void) {
   uint32_t c = Wheel(random(265));
   for (char i = 7; i >= 1; --i) {
     if (i == 6)
-      strip.setPixelColor(pos[i], 0);
+      strip.setPixelColor(pos[byte(i)], 0);
     else
-      BRGTN::change(pos[i], -128);
-    pos[i] = pos[i-1];
+      BRGTN::change(pos[byte(i)], -128);
+    pos[byte(i)] = pos[byte(i-1)];
   }
   int p = random(strip.numPixels()+1);
   pos[0] = p;
@@ -546,7 +543,7 @@ class centerRun : public animation {
 };
 
 void centerRun::init(void) {
-  color = Wheel(256);
+  color = Wheel(random(256));
   int n    = strip.numPixels();
   int diff = n >> 3;
   m = l = r = random(diff+2) + ((n * 7) >> 4);
@@ -554,9 +551,9 @@ void centerRun::init(void) {
 
 void centerRun::show(void) {
   if (l >= 0) strip.setPixelColor(l, color);
-  if (r < strip.numPixels()) strip.setPixelColor(r, color);
+  if (r < int(strip.numPixels())) strip.setPixelColor(r, color);
   l -= 2; r += 2;
-  if ((l < 0) && r >= strip.numPixels()) {
+  if ((l < 0) && r >= int(strip.numPixels())) {
     l = r = m + 1;
     color = Wheel(random(256));
   }
@@ -602,7 +599,7 @@ void shineSeven::startNewColor(void) {
   w += 97;
   BRGTN::setColor(c);
   c &= 0x10101;
-  for (int i = curs; i < strip.numPixels(); i += base)
+  for (uint16_t i = curs; i < strip.numPixels(); i += base)
     strip.setPixelColor(i, c);
 }
 
@@ -762,7 +759,7 @@ void mergeWave::show(void) {
     strip.setPixelColor(l, Wheel(l & 255));
     if (l > len) strip.setPixelColor(l-len, 0);
     strip.setPixelColor(r, Wheel((index + r) & 255));
-    if ((r + len) > strip.numPixels()) strip.setPixelColor(r+len, 0);
+    if ((r + len) > int(strip.numPixels())) strip.setPixelColor(r+len, 0);
   } else {
     uint32_t c = strip.getPixelColor(l);
     c |= Wheel(l & 255);
@@ -858,7 +855,7 @@ void neoFire::show(void) {
     return;
   }
   pause = random(8);
-  for(int i = 0; i < strip.numPixels(); ++i) {
+  for(uint16_t i = 0; i < strip.numPixels(); ++i) {
     uint32_t blended_color = BLEND::add(strip.getPixelColor(i), color);
     byte r = random(80);
     uint32_t diff_color = strip.Color(r, r/2, r/2);
@@ -949,7 +946,7 @@ void collMdl::show(void) {
     strip.setPixelColor(l, cl);
   }
   if (r >= mr) {
-    if (r < strip.numPixels() - 2) strip.setPixelColor(r+2, 0);
+    if (r < int(strip.numPixels() - 2)) strip.setPixelColor(r+2, 0);
     strip.setPixelColor(r, cr);
   }
   if ((l >= ml) && (r <= mr)) {
@@ -997,7 +994,7 @@ void collEnd::show(void) {
   if (mr > 1) {
     for (int i = 0; i < mr; ++i)
       BLEND::blendPixel(i);
-    for (int i = ml; i < strip.numPixels(); ++i)
+    for (uint16_t i = ml; i < strip.numPixels(); ++i)
       BLEND::blendPixel(i);
   }
   
@@ -1045,12 +1042,12 @@ class rainBlend : public BLEND, public animation {
 
 
 void rainBlend::show(void) {
-  if (index < strip.numPixels()) {
+  if (index < int(strip.numPixels())) {
     strip.setPixelColor(index, Wheel(((index * 256 / strip.numPixels())) & 255));
     ++index;
     return;
   }
-  for(int i = 0; i < strip.numPixels(); ++i)
+  for(uint16_t i = 0; i < strip.numPixels(); ++i)
     BLEND::blendPixel(i);
 }
 
@@ -1097,7 +1094,7 @@ void swing::show(void) {
     ++len;
     CRAWL::fwd = !CRAWL::fwd;
     index = strip.numPixels() - len - 1;
-    if (len >= strip.numPixels()) {
+    if (len >= int(strip.numPixels())) {
       do_clear = true;                                    // Force the strip clerance
       complete = true;
       return;
@@ -1137,7 +1134,7 @@ void swingSingle::show(void) {
 	      strip.setPixelColor(i, color);
 	  }
     ++index;
-    if (index >= strip.numPixels()) {
+    if (index >= int(strip.numPixels())) {
       fwd = false;
       len += random(1, strip.numPixels() >> 4);
       index = strip.numPixels() - len - 1;
@@ -1157,7 +1154,7 @@ void swingSingle::show(void) {
       w += 4;
     }
   }
-  if (len >= strip.numPixels()) {
+  if (len >= int(strip.numPixels())) {
     do_clear = true;                                      // Force the strip clerance
     complete = true;
     return;
@@ -1175,7 +1172,7 @@ class randomFill :  public BRGTN, public animation {
     void      newDot(bool clr);
     byte      w;
     int       remain;
-    int       pos;
+    uint16_t  pos;
     bool      clr;
 };
 
@@ -1232,7 +1229,7 @@ void randomFill::newDot(bool clr) {
     while(strip.getPixelColor(pos) != 0) pos++;
   }
   if (pos >= strip.numPixels()) {                         // something is wrong in the code
-    for (int i = 0; i < strip.numPixels(); ++i)
+    for (uint16_t i = 0; i < strip.numPixels(); ++i)
       strip.setPixelColor(i, color);
     remain = 0;
   }
@@ -1736,8 +1733,8 @@ void rndDrops::show(void) {
   int n = strip.numPixels();
   for (byte i = 0; i < num; ++i) {
     if (++dr[i].tm > 7) {                                 // Delete old drops
-      dr[i].pos = dr[num-1].pos;
-      dr[i].tm  = dr[num-1].tm;
+      dr[i].pos = dr[byte(num-1)].pos;
+      dr[i].tm  = dr[byte(num-1)].tm;
       --num; --i;
       continue;
     }
@@ -1772,8 +1769,8 @@ void rndDrops::add(void) {
   if (c) return;
   c = Wheel(random(256));
   strip.setPixelColor(pos, c);
-  dr[num].pos = pos;
-  dr[num].tm  = 0;
+  dr[byte(num)].pos = pos;
+  dr[byte(num)].tm  = 0;
   num++;
 }
 
@@ -1831,7 +1828,7 @@ void solCreep::newSoliton(void) {
   uint32_t r = c & 0xff;
   uint32_t g = (c >> 8)  & 0xff;
   uint32_t b = (c >> 16) & 0xff;
-  for (byte i = 2; i <= 5; ++i) {
+  for (byte i = 1; i <= 4; ++i) {
     r >>= 1;
     g >>= 1;
     b >>= 1;
@@ -1862,7 +1859,7 @@ class clr : public BASE {
 
 bool clr::fadeAll(byte val) {
   bool finish = true;
-  for (int i = 0; i < strip.numPixels(); ++i) {
+  for (uint16_t i = 0; i < strip.numPixels(); ++i) {
     if (!fade(i, val)) finish = false;
   }
   return finish;
@@ -1912,16 +1909,16 @@ void clearSide::init(void) {
 
 void clearSide::show(void) {
   if (fwd) {
-    if (index < strip.numPixels()) {
+    if (index < int(strip.numPixels())) {
       strip.setPixelColor(index, color);
       if (index > 0) strip.setPixelColor(index-1, 0);
     }
     ++index;
-    complete = (index >= strip.numPixels());
+    complete = (index >= int(strip.numPixels()));
   } else {
     if (index >= 0) {
       strip.setPixelColor(index, color);
-      if (index < (strip.numPixels() - 1)) strip.setPixelColor(index+1, 0);
+      if (index < int(strip.numPixels() - 1)) strip.setPixelColor(index+1, 0);
     }
     --index;
     complete = (index < 0);
@@ -1948,14 +1945,14 @@ void clearCntr::init(void) {
 }
 
 void clearCntr::show(void) {
-  if (r < strip.numPixels()) {
+  if (r < int(strip.numPixels())) {
     strip.setPixelColor(r, color);
     if (r > 0) strip.setPixelColor(r-1, 0);
   }
   ++r;
   if (l >= 0) {
     strip.setPixelColor(l, color);
-    if (l < (strip.numPixels() - 1)) strip.setPixelColor(l+1, 0);
+    if (l < int(strip.numPixels() - 1)) strip.setPixelColor(l+1, 0);
   }
   --l;
   complete = (l < 0);
@@ -2014,7 +2011,7 @@ void clearHalf::init(void) {
 }
 
 void clearHalf::show(void) {
-  for (int i = 0; i < strip.numPixels(); i += one_step) {
+  for (uint16_t i = 0; i < strip.numPixels(); i += one_step) {
     if (i > 0 || (one_step == 1)) strip.setPixelColor(i, 0);
   }
   complete = ((one_step >>= 1) == 0);
@@ -2024,13 +2021,13 @@ void clearHalf::show(void) {
 class shuffle {
   public:
     shuffle(byte a_size) {
-      for (byte i = 0; i < a_size; index[i] = i++);
+      for (byte i = 0; i < a_size; ++i) index[i] = i;
       curr = num_anim = a_size; 
     }
     byte  next(void);
   private:
     void  randomize(void);
-    byte  index[32];                                      // The maximum number of animations
+    byte  index[34];                                      // The maximum number of animations
     byte  num_anim;                                       // The active animation number
     byte  curr;
 };
@@ -2149,7 +2146,7 @@ void MANAGER::initClear(void) {
 }
 
 bool MANAGER::isClean(void) {
-  for (int i = 0; i < strip.numPixels(); ++i)
+  for (uint16_t i = 0; i < strip.numPixels(); ++i)
     if (strip.getPixelColor(i)) return false;
   return true;
 }
