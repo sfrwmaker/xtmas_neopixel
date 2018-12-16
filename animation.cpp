@@ -202,7 +202,7 @@ void lightUp::newColor(void) {
 
 //---------------------------------------------- Random sparcs ------------------------------------------------------------
 void sparks::show(void) {
-	uint32_t c = strip.wheel(Random(265));
+	uint32_t c = strip.wheel(Random(256));
 	for (int8_t i = 7; i >= 1; --i) {
 		if (i == 6)
 			strip.setPixelColor(pos[uint8_t(i)], 0);
@@ -1669,7 +1669,7 @@ void rainDrops::newDrop(void) {
 		return;
 	uint16_t n	= strip.numPixels();
 	drop[active_drops].head		= Random(n >> 1, n+1);
-	drop[active_drops].c		= strip.wheel(Random(265));
+	drop[active_drops].c		= strip.wheel(Random(256));
 	drop[active_drops].speed	= Random(1, 4);
 	++active_drops;
 }
@@ -1750,7 +1750,7 @@ void ripeFruit::newFruit(void) {
 	uint16_t n	= strip.numPixels();
 	fruit[active_fruits].part[0]= Random(4, n - 5);
 	fruit[active_fruits].part[1]= n;									// Not active yet
-	fruit[active_fruits].c		= strip.wheel(Random(265));
+	fruit[active_fruits].c		= strip.wheel(Random(256));
 	fruit[active_fruits].speed	= 0;
 	++active_fruits;
 }
