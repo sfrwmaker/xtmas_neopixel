@@ -10,3 +10,5 @@ animation*  anims[] = {
               &cBlend, &cSwing, &cSwingS, &cFlash, &sWave, &cWorms, &cInterf, &cToward, &rToward, &lHouse,
               &cDrops, &wSeven, &fSeven, &sCreep, &tChase, &mtrSky, &symRun, &cRipe
             };
+
+The article is available here: https://www.hackster.io/sfrwmaker/5-minute-christmas-neopixel-led-strip-0abf33
