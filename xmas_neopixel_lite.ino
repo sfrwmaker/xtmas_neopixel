@@ -10,7 +10,6 @@ const uint16_t  StripSize    = 100;                         // Length of Neopixe
 
 NEOPIXEL strip = NEOPIXEL(StripSize, NEO_PIN, NEO_RGB + NEO_KHZ800);
 
-//================================ Ent of class definitions ===============================================================
 colorWipe   cWipe;
 colorWalk   cWalk;
 randomCreep cCreep;
@@ -45,8 +44,8 @@ towardRain  rToward;
 lghtHouse   lHouse;
 rndDrops    cDrops;
 solCreep    sCreep;
-theatChase  tChase;
-meteorSky   mtrSky;
+//theatChase  tChase;
+//meteorSky   mtrSky;
 symmRun     symRun;
 //metSingle   mtrSgl;
 //pureStrip   pStrip;
@@ -66,7 +65,7 @@ animation*  anims[] = {
               &cWipe, &cWalk, &cCreep, &cRainbow, &cRainCycle, &cRainFull, &cWave, &lUp, &sRnd, &rFade,
               &cCollEnd, &cRun, &cSeven, &mOne, &mWave, &cOne, &cFire, &cEvenOdd, &rFill, &cCollMdl,
               &cBlend, &cSwing, &cSwingS, &cFlash, &sWave, &cWorms, &cInterf, &cToward, &rToward, &lHouse,
-              &cDrops, &wSeven, &fSeven, &sCreep, &tChase, &mtrSky, &symRun, &cRipe
+              &cDrops, &wSeven, &fSeven, &sCreep, &symRun, &cRipe
             };
 clr*        clearance[] = { &clrSide, &clrCntr, &clrFade, &clrEat, &clrHalf };
 const byte  num_anim = sizeof(anims) / sizeof(animation*);
