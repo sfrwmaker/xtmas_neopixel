@@ -12,3 +12,5 @@ animation*  anims[] = {
             };
 
 The article is available here: https://www.hackster.io/sfrwmaker/5-minute-christmas-neopixel-led-strip-0abf33
+
+In case of issues, the previous release is available in OLD directory.
